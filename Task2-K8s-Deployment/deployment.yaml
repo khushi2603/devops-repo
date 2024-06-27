@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-application
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test-application
+  template:
+    metadata:
+      labels:
+        app: test-application
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"

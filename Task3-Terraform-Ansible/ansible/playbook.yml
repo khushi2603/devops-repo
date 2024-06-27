@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+
+    - name: Start Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Install Node.js
+      yum:
+        name: nodejs
+        state: present
+
+    - name: Clone Node.js application
+      git:
+        repo: 'https://github.com/devops-repo/nodejs-app.git'
+        dest: /var/www/nodejs-app
+
+    - name: Install npm dependencies
+      command: npm install
+      args:
+        chdir: /var/www/nodejs-app
+
+    - name: Copy Nginx configuration for Node.js
+      copy:
+        src: nginx/nodejs.conf
+        dest: /etc/nginx/conf.d/nodejs.conf
+      notify: Restart Nginx
+
+    - name: Start Node.js application
+      command: nohup node /var/www/nodejs-app/app.js &
+      args:
+        chdir: /var/www/nodejs-app
+      async: 10
+      poll: 0
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
